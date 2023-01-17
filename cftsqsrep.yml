@@ -122,7 +122,7 @@ Outputs:
       Fn::GetAtt:
       - SQSQueue
       - QueueName
-  SNSTopic:
+  SNSTopicArn:
     Description: SNS Topic Arn
     Value:
       Fn::GetAtt:
