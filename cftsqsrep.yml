@@ -1,36 +1,56 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This stack creates a Standard Queue
+Description: Creating SQS Using cloudformation
 Parameters:
-  queuename:
+  ContentBasedDeduplication:
+    Description: specifies whether to enable content-based deduplication
+    Type: String
+    AllowedValues:
+    - 'true'
+    - 'false'
+    Default: 'true'
+  QueueName:
     Description: This stack will append fifo to the end of this name.
     Type: String
-    Default: 'sample-queue'
+    Default: 'Queue1'
+  TopicName:
+    Description: Create SNS topic name for fifo queue
+    Type: String
+    Default: 'Topic1'
   DelaySeconds:
-    Description: "The time in seconds that the delivery of all messages in the queue is delayed"
+    Description: The Id of the AMI you wish to launch the instance from.
     Type: Number
     Default: 'delayseconds1'
   MaximumMessageSize:
     Type: Number
-    Description: "The limit of how many bytes that a message can contain before Amazon SQS rejects it"
+    Description: The limit of how many bytes that a message can contain before Amazon
+      SQS rejects it, 1024 bytes (1 KiB) to 262144 bytes (256 KiB)
     Default: 'mms1'
   MessageRetentionPeriod:
-    Description: "The number of seconds that Amazon SQS retains a message."
+    Description: 'The number of seconds that Amazon SQS retains a message. You can
+      specify an integer value from 60 seconds (1 minute) to 1209600 seconds (14 days). '
     Type: Number
-    Default: 'mrp1'
+    Default: 'mrp'
   ReceiveMessageWaitTimeSeconds:
-    Description: "Specifies the duration, in seconds, that the ReceiveMessage action call waits until a message is in the queue in order to include it in the response"
+    Description: Specifies the duration, in seconds, that the ReceiveMessage action
+      call waits until a message is in the queue in order to include it in the response,
+      as opposed to returning an empty response if a message is not yet available.
+      1 to 20
     Type: Number
     Default: 'rmwt'
   UsedeadletterQueue:
-    Description: "A dead-letter queue is a queue that other (source) queues can target for messages that can't be processed (consumed) successfully."
+    Description: A dead-letter queue is a queue that other (source) queues can target
+      for messages that can't be processed (consumed) successfully. You can set aside
+      and isolate these messages in the dead-letter queue to determine why their processing
+      doesn't succeed.
     Type: String
     AllowedValues:
     - 'true'
     - 'false'
     Default: 'false'
   VisibilityTimeout:
-    Description: "This should be longer than the time it would take to process and delete a message"
+    Description: This should be longer than the time it would take to process and
+      delete a message, this should not exceed 12 hours.
     Type: Number
     Default: 'visibilitytimeout1'
 Mappings: {}
@@ -43,8 +63,14 @@ Resources:
   SQSQueue:
     Type: AWS::SQS::Queue
     Properties:
-      DelaySeconds:
-        Ref: DelaySeconds
+      ContentBasedDeduplication:
+        Ref: ContentBasedDeduplication
+      FifoQueue: 'true'
+      QueueName:
+        Fn::Join:
+        - ''
+        - - Ref: QueueName
+          - ".fifo"
       MaximumMessageSize:
         Ref: MaximumMessageSize
       MessageRetentionPeriod:
@@ -65,32 +91,40 @@ Resources:
   MyDeadLetterQueue:
     Condition: CreateDeadLetterQueue
     Type: AWS::SQS::Queue
+    Properties:
+      FifoQueue: 'true'
+      QueueName:
+        Fn::Join:
+        - ''
+        - - Ref: QueueName
+          - Deadletter
+          - ".fifo"
+  MySNSTopic: 
+   Type: AWS::SNS::Topic
+   Properties: 
+     Subscription: 
+       - Endpoint: "Nithyagirish93@gmail.com"
+         Protocol: "Email"    
 Outputs:
   QueueURL:
-    Description: URL of the created SQS
+    Description: URL of newly created SQS Queue
     Value:
       Ref: SQSQueue
   QueueARN:
-    Description: ARN of the created SQS
+    Description: ARN of newly created SQS Queue
     Value:
       Fn::GetAtt:
       - SQSQueue
       - Arn
   QueueName:
-    Description: Name of the created SQS
+    Description: Name newly created SQS Queue
     Value:
       Fn::GetAtt:
       - SQSQueue
       - QueueName
-  DeadLetterQueueURL:
-    Condition: CreateDeadLetterQueue
-    Description: URL of the dead letter queue
-    Value:
-      Ref: MyDeadLetterQueue
-  DeadLetterQueueARN:
-    Condition: CreateDeadLetterQueue
-    Description: ARN of the dead letter queue
+  SNSTopic:
+    Description: SNS Topic Arn
     Value:
       Fn::GetAtt:
-      - MyDeadLetterQueue
-      - Arn
+      - MySNSTopic
+      - Arn  
