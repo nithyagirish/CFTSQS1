@@ -17,6 +17,10 @@ Parameters:
     Description: Create SNS topic name for fifo queue
     Type: String
     Default: 'Topic1'
+  SNSTopicArn:
+    Description: Create SNS Topic Arn
+    Type: String
+    Default: 'awsSNSTopicArn'
   DelaySeconds:
     Description: The Id of the AMI you wish to launch the instance from.
     Type: Number
@@ -99,12 +103,12 @@ Resources:
         - - Ref: QueueName
           - Deadletter
           - ".fifo"
-  MySNSTopic: 
-   Type: AWS::SNS::Topic
+  MySNSTopicSubscription: 
+   Type: AWS::SNS::Subscription
    Properties: 
      Subscription: 
        - Endpoint: "Nithyagirish93@gmail.com"
-         Protocol: "Email"    
+         Protocol: SNS   
 Outputs:
   QueueURL:
     Description: URL of newly created SQS Queue
