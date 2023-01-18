@@ -103,7 +103,7 @@ Resources:
         - - Ref: QueueName
           - Deadletter
           - ".fifo"
-  MySNSTopicSubscription: 
+  SNSTopicSubscription: 
    Type: AWS::SNS::Subscription
    Properties: 
      Subscription: 
